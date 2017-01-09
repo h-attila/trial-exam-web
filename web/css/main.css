@@ -1,0 +1,23 @@
+body {
+  margin: 50px auto;
+  width: 700px;
+  background-image: url('../images/encryptionhero.jpg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+main {
+  height: 500px;
+  padding: 20px;
+  background-color: white;
+}
+
+h1 {
+  text-align: center;
+  color: red;
+}
+
+.input-text {
+  width: 400px;
+}
