@@ -5,18 +5,22 @@
     <link rel="stylesheet" href="/css/vex.css" />
     <link rel="stylesheet" href="/css/vex-theme-os.css" />
     <link rel="stylesheet" href="/css/main.css">
-    <title>Caesar Cipher</title>
+    <title>Caesar Cipher Decoder</title>
   </head>
   <body>
     <main>
-      <h1 class="header">Caesar Cipher Encrypter</h1>
-      <p>Write your text here:</p>
+      <h1 class="header">Caesar Cipher Decoder</h1>
+      <p>Write your secret text here:</p>
       <form>
         <input class="input-text" type="text" name="input" placeholder="Write your text here...">
-        <input class="decription-key" type="text" name="key" placeholder="Encription key">
-        <button class="button" type="button" name="button">Decrypt!</button>
-        <button class="buttonAll" type="button" name="button">Get all!</button>
+        <input class="decode-key" type="text" name="key" placeholder="Decoder key">
+        <button class="button" type="button" name="button">Decode!</button>
       </form>
+      <br><hr>
+      <p>Results and history:</p>
+      <div class="resultList">
+        <ul class="list"></ul>
+      </div>
     </main>
     <script src="scripts/vex.combined.min.js"></script>
     <script>vex.defaultOptions.className = 'vex-theme-os'</script>

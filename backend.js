@@ -1,101 +1,81 @@
 var server = require('express');
 var bodyParser = require('body-parser');
-var app = server();
+var mysql = require('mysql');
+var checkerAndDecoder = require('./decoder.js');
 
-const responseErr = {
+// error message for key error
+const responseKeyErr = {
   status: 'error',
   text: 'Shift is out of bound',
 };
 
-var responseOk = {
-  status: 'ok',
-  text: '',
-};
-
 // set static content
+var app = server();
 app.use('/', server.static('web'));
 app.use(bodyParser.json());
 
-// Ger data to decrypt from frontend
+// Post data from fromt to decode, and send back
 app.post('/decode', function (req, res) {
   var text = req.body.text;
   var key = parseInt(req.body.key, 10);
-  if (checkerAndEncrypter.key(key)) {
-    res.status(200).json(checkerAndEncrypter.text(text, key));
+  if (checkerAndDecoder.inputKeyChecker(key)) {
+    var decodedText = checkerAndDecoder.inputTextDecoder(text, key).text;
+    database.write({ text: decodedText, decodeKey: key }, function (data) {
+      res.status(200).json(data);
+    });
   } else {
-    res.status(400).json(responseErr);
+    res.status(400).json(responseKeyErr);
   }
 });
 
-app.get('//decode/all', function (req, res) {
-  // if (checkerAndEncrypter.key(key)) {
-  //   res.status(200).json(checkerAndEncrypter.text(text, key));
-  // } else {
-  //   res.status(400).json(responseErr);
-  // }
+// send all data back to frontend
+app.get('/decode/all', function (req, res) {
+  database.read(function (data) {
+    res.status(200).json(data);
+  });
 });
 
+// database handling
+var database = (function () {
 
-var checkerAndEncrypter = (function () {
+  // setting up database connection
+  var connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'myTopSecretNewPassword123',
+    database: 'js_probavizsga',
+  });
 
-  var characters = 'abcdefghijklmnopqrstuvwxyz';
-  var newCharPos;
-
-  // valid input checking for key
-  function inputKeyChecker(key) {
-    if ((key >= -25) && (key <= 25)) {
-      return true;
-    }
-    return false;
+  // close db connection - not used now
+  function closeDatabaseConnection() {
+    connection.end(function () {
+      console.log('connection closed successfully');
+    });
   }
 
-  function inputTextEncrypter(text, key) {
-    var encryptedText = '';
-    for (var i = 0; i < text.length; i += 1) {
-      var actualCharacterPos = characters.indexOf(text[i].toLowerCase());
-      var shift = parseInt(key, 10);
+  function dataRead(callback) {
+    connection.query('SELECT * FROM js_probavizsga', function (err, data) {
+      if (err) throw err;
+      console.log('Data from database:');
+      data.forEach(function (row) {
+        console.log(`id: ${row.id}, text: ${row.text}`);
+      });
+      callback(data);
+    });
+  }
 
-      if (text[i] !== ' ') {
-        if (actualCharacterPos === -1) {
-          console.log('Error!');
-          return responseErr;
-        }
-        if ((actualCharacterPos + shift) < 0) {
-          newCharPos = actualCharacterPos + shift + characters.length;
-          if (text[i] === text[i].toUpperCase()) {
-            encryptedText += characters[newCharPos].toUpperCase();
-          } else {
-            encryptedText += characters[newCharPos];
-          }
-        } else if ((actualCharacterPos + shift) >= characters.length) {
-          newCharPos = actualCharacterPos + shift - characters.length;
-          if (text[i] === text[i].toUpperCase()) {
-            encryptedText += characters[newCharPos].toUpperCase();
-          } else {
-            encryptedText += characters[newCharPos];
-          }
-        } else {
-          newCharPos = actualCharacterPos + shift;
-          if (text[i] === text[i].toUpperCase()) {
-            encryptedText += characters[newCharPos].toUpperCase();
-          } else {
-            encryptedText += characters[newCharPos];
-          }
-        }
-      } else {
-        encryptedText += ' ';
-      }
-    }
-    responseOk.text = encryptedText;
-    return responseOk;
+  function dataWrite(data, callback) {
+    connection.query('INSERT INTO js_probavizsga SET ?', data, function (err, res) {
+      if (err) throw err;
+      console.log(`data added successfully on ID: ${res.insertId}`);
+    });
+    callback(data);
   }
 
   return {
-    // public functions
-    key: inputKeyChecker,
-    text: inputTextEncrypter,
+    read: dataRead,
+    write: dataWrite,
   };
-
 })();
 
 
@@ -103,5 +83,5 @@ var checkerAndEncrypter = (function () {
 var port = process.env.PORT || 3000;
 
 app.listen(port, function () {
-  console.log('Server running on port %d', port);
+  console.log(`Server running on port ${port}`);
 });

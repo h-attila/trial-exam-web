@@ -1,24 +1,20 @@
 // AJAX communication with server
-// start: 19:30
-
 var ajax = (function () {
 
-  // Send data to decrypt to the server
-  function sendDataToDecrypt(text, key) {
-    var data = { 'text': text, 'key': key };
-    console.log(data);
-    talkToServer('POST', '/decode', data, console.log);
-
+  // Send data to decode to the server
+  function sendDataToDecode(text, key) {
+    var data = { text: text, key: key };
+    talkToServer('POST', '/decode', data, getAllDecodedData);
   }
 
-  function getAllDecryptedData() {
-    var data = { 'text': text, 'key': key };
-    talkToServer('GET', '/decode/all', null, console.log);
+  // Gt all data from server
+  function getAllDecodedData() {
+    talkToServer('GET', '/decode/all', null, app.showResults);
   }
 
   // Setting up server communication
   function talkToServer(method, additionalUrl, data, callbackFunc) {
-    const url = 'http://localhost:3000' + additionalUrl;
+    var url = 'http://localhost:3000' + additionalUrl;
     var httpRequest = new XMLHttpRequest();
     httpRequest.open(method, url, true);
     httpRequest.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
@@ -26,44 +22,59 @@ var ajax = (function () {
     // if data exist
     data ? httpRequest.send(JSON.stringify(data)) : httpRequest.send();
 
-    httpRequest.onreadystatechange = function() {
+    httpRequest.onreadystatechange = function () {
       if (httpRequest.readyState === XMLHttpRequest.DONE) {
-        callbackFunc(JSON.parse(httpRequest.response));
+        var response = JSON.parse(httpRequest.response);
+        if (response.status === 'error') {
+          app.dataError(response.text);
+        }
+        console.log(response);
+        callbackFunc(response);
       }
     };
   }
-
   return {
-    sendDataToDecrypt: sendDataToDecrypt,
-    getAllDecryptedData: getAllDecryptedData,
+
+    // public functions
+    sendDataToDecode: sendDataToDecode,
+    getAllDecodedData: getAllDecodedData,
 
   };
 })();
 
-
+// Main app
 var app = (function () {
 
+  // HTML front-side elements
   var button = document.querySelector('.button');
-  var buttonAll = document.querySelector('.buttonAll');
   var inputText = document.querySelector('.input-text');
-  var decriptionKey = document.querySelector('.decription-key');
+  var decodeKey = document.querySelector('.decode-key');
+  var list = document.querySelector('.list');
 
+  // Events handling
   button.addEventListener('click', function () {
-    ajax.sendDataToDecrypt(inputText.value, decriptionKey.value);
+    ajax.sendDataToDecode(inputText.value, decodeKey.value);
   });
 
-  buttonAll.addEventListener('click', function () {
-    ajax.getAllDecryptedData();
-  });
+  function showResults(dataFromWeb) {
+    list.innerHTML = '';
+    dataFromWeb.forEach(function (item) {
+      var listItem = document.createElement('li');
+      listItem.innerHTML = item.text;
+      console.log(listItem.innerHTML);
+      list.appendChild(listItem);
+    });
+  }
 
+  // send error msg using vex
   function dataError(errorMsg) {
     vex.dialog.alert(errorMsg);
   }
 
   return {
-    // public functions come here
+    // public functions
     dataError: dataError,
-
+    showResults: showResults,
   };
 
 })();

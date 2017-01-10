@@ -5,6 +5,7 @@ body {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+  font-family: sans-serif;
 }
 
 main {
@@ -15,9 +16,19 @@ main {
 
 h1 {
   text-align: center;
+  margin-bottom: 50px;
   color: red;
 }
 
 .input-text {
   width: 400px;
+}
+
+.resultList {
+  height: 240px;
+  overflow: scroll;
+}
+
+li {
+  margin-left: 10px;
 }
