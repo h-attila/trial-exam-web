@@ -56,6 +56,7 @@ var app = (function () {
     ajax.sendDataToDecode(inputText.value, decodeKey.value);
   });
 
+  // generate the list for the data comes from server
   function showResults(dataFromWeb) {
     list.innerHTML = '';
     dataFromWeb.forEach(function (item) {
